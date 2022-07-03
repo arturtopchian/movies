@@ -1,0 +1,16 @@
+.loader-center {
+  display: flex;
+  justify-content: center;
+}
+
+.loader-right {
+  display: flex;
+  justify-content: right;
+}
+
+.loader-left {
+  display: flex;
+  justify-content: left;
+}
+
+/*# sourceMappingURL=LoaderSize.css.map */
