@@ -2,11 +2,7 @@ import SignIn from "./SignIn";
 import {useDispatch} from "react-redux";
 import {toggleSearch} from "./searchSlice";
 
-type ISearchPanel = {
-    setShowSearch: (value: boolean) => void;
-}
-
-const SearchPanel = ({setShowSearch}: ISearchPanel) => {
+const SearchPanel = () => {
     const dispatch = useDispatch();
     return (
         <div className="header__auth">

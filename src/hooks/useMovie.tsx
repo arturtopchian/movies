@@ -9,18 +9,8 @@ const IMG = "https://image.tmdb.org/t/p/original";
 const getQuery = (keys: string | string[] | undefined) => typeof keys === 'object' ? keys.join('&') : keys;
 
 const togglePages = () => {
-
 }
 
-const getValidData = (data: any) => {
-    data.results.map((item:any) => {
-        return {
-            id: item.id,
-            backgroundImage: item.backdrop_path,
-            genres: '',
-        }
-    });
-}
 
 export enum Search {
     NOW_PLAYING = "now_playing",
@@ -39,6 +29,7 @@ export enum MovieTypes {
     SEARCH = 'search',
     MOVIE = 'movie',
     TV = 'tv',
+    NEW_RELEASE = 'trending',
     MOVIE_IMAGES = "movie_images",
     MOVIE_VIDEOS = "movie_videos",
     MOVIE_SIMILAR = "movie_similar",
@@ -62,46 +53,81 @@ export type IMovieProps = {
     searchParams?: Search
 }
 
-
-function getActualUrl({type, keys, id, searchParams}: IMovieProps) {
+function getActualUrl(type: MovieTypes) {
     switch (type) {
-        case MovieTypes.MOVIE:
-        case MovieTypes.TV:
-            return `${BASE}${type}/${id}${APIKEY}${LANGUAGE}`;
-        case MovieTypes.TV_IMAGES:
-            return `${BASE}${MovieTypes.TV}/${id}/${searchParams}${APIKEY}include_image_language=en,null`;
-        case MovieTypes.MOVIE_IMAGES:
-            return `${BASE}${MovieTypes.MOVIE}/${id}/${searchParams}${APIKEY}include_image_language=en,null`;
-        case MovieTypes.MOVIE_VIDEOS:
-        case MovieTypes.MOVIE_SIMILAR:
-            return `${BASE}${MovieTypes.MOVIE}/${id}/${searchParams}${APIKEY}${LANGUAGE}`;
-        case MovieTypes.TV_SIMILAR:
-        case MovieTypes.TV_VIDEOS:
-            return `${BASE}${MovieTypes.TV}/${id}/${searchParams}${APIKEY}${LANGUAGE}`;
-        case MovieTypes.MOVIE_NOW_PLAYING:
         case MovieTypes.MOVIE_POPULAR:
-        case MovieTypes.MOVIE_TOP_RATED:
-        case MovieTypes.MOVIE_UPCOMING:
-            return `${BASE}${MovieTypes.MOVIE}/${searchParams}${APIKEY}${LANGUAGE}`;
-        case MovieTypes.TV_NOW_PLAYING:
-        case MovieTypes.TV_POPULAR:
-        case MovieTypes.TV_TOP_RATED:
-        case MovieTypes.TV_UPCOMING:
-            return `${BASE}${MovieTypes.TV}/${searchParams}${APIKEY}${LANGUAGE}`;
-        case MovieTypes.SEARCH:
-            const query = getQuery(keys);
-            return `${BASE}${type}/${Search.MULTI}${APIKEY}${LANGUAGE}&query=${query}`;
+            return `${BASE}${MovieTypes.MOVIE}/${Search.POPULAR}${APIKEY}${LANGUAGE}`;
+        case MovieTypes.NEW_RELEASE:
+            return `${BASE}${type}/all/day${APIKEY}`;
+        // case MovieTypes.MOVIE:
+        // case MovieTypes.TV:
+        //     return `${BASE}${type}/${id}${APIKEY}${LANGUAGE}`;
+        // case MovieTypes.TV_IMAGES:
+        //     return `${BASE}${MovieTypes.TV}/${id}/${searchParams}${APIKEY}include_image_language=en,null`;
+        // case MovieTypes.MOVIE_IMAGES:
+        //     return `${BASE}${MovieTypes.MOVIE}/${id}/${searchParams}${APIKEY}include_image_language=en,null`;
+        // case MovieTypes.MOVIE_VIDEOS:
+        // case MovieTypes.MOVIE_SIMILAR:
+        //     return `${BASE}${MovieTypes.MOVIE}/${id}/${searchParams}${APIKEY}${LANGUAGE}`;
+        // case MovieTypes.TV_SIMILAR:
+        // case MovieTypes.TV_VIDEOS:
+        //     return `${BASE}${MovieTypes.TV}/${id}/${searchParams}${APIKEY}${LANGUAGE}`;
+        // case MovieTypes.MOVIE_NOW_PLAYING:
+        // case MovieTypes.MOVIE_POPULAR:
+        // case MovieTypes.MOVIE_TOP_RATED:
+        // case MovieTypes.MOVIE_UPCOMING:
+        //     return `${BASE}${MovieTypes.MOVIE}/${searchParams}${APIKEY}${LANGUAGE}`;
+        // case MovieTypes.TV_NOW_PLAYING:
+        // case MovieTypes.TV_POPULAR:
+        // case MovieTypes.TV_TOP_RATED:
+        // case MovieTypes.TV_UPCOMING:
+        //     return `${BASE}${MovieTypes.TV}/${searchParams}${APIKEY}${LANGUAGE}`;
+        // case MovieTypes.SEARCH:
+        //     const query = getQuery(keys);
+        //     return `${BASE}${type}/${Search.MULTI}${APIKEY}${LANGUAGE}&query=${query}`;
         default:
-            return `${BASE}${type}${id}${APIKEY}`
+            return `${BASE}${type}${55}${APIKEY}`
     }
 }
 
-const useMovie = ({type, keys, id, searchParams}: IMovieProps) => {
+const getActualGenres = (genres: number[], genreList: any[]) => {
+    return genres.map(id => genreList.filter(item => item.id === id).map(item => item.name)[0]);
+}
+
+const getValidPopularsData = (data: any, genre: [], count = 20) => {
+    data.results.length = count;
+    return data.results.map((item: any) => {
+        return {
+            id: item.id,
+            backgroundImage: `${IMG}${item.backdrop_path}`,
+            poster: `${IMG}${item.poster_path}`,
+            genres: getActualGenres(item.genre_ids, genre),
+            lang: item.original_language.toUpperCase(),
+            title: item.title,
+            date: item.release_date,
+            description: item.overview,
+            rating: item.vote_average,
+            ratingCount: item.vote_count,
+        }
+    });
+}
+type returned = [data: [], loading: boolean, error: boolean];
+const useMovie = (type: MovieTypes): returned => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [empty, setEmpty] = useState(false);
     const [data, setData] = useState<[]>([]);
-    const [[movieGenres,tvGenres], setGenres] = useState<{}[]>([]);
+    const [[movieGenre, tvGenre], setGenres] = useState<{}[]>([]);
+    const getActualCB = (type: MovieTypes): any => {
+        switch (type) {
+            case MovieTypes.MOVIE_POPULAR:
+                return [getValidPopularsData, movieGenre];
+            case MovieTypes.NEW_RELEASE:
+                return [getValidPopularsData, movieGenre, 6];
+            default:
+                return null;
+        }
+    }
 
     useEffect(() => {
         Promise.all([
@@ -113,32 +139,33 @@ const useMovie = ({type, keys, id, searchParams}: IMovieProps) => {
             .catch(e => console.log(e.message));
     }, []);
 
-    console.log(data)
     useEffect(() => {
-        setLoading(true);
-        const url = getActualUrl({type, keys, id, searchParams});
-        console.log(url)
-
-        try {
-            fetch(url)
-                .then(res => res.json())
-                .then(result => {
-                    getValidData(result);
-                    setData(result);
-                    setLoading(false);
-                })
-                .catch(e => {
-                    setError(true);
-                    setLoading(false);
-                    throw new Error(e.message);
-                });
-        } catch (e) {
-            if (e instanceof Error) console.log(e.message);
-            setError(true);
-            setLoading(false);
+        if (movieGenre) {
+            setLoading(true);
+            const url = getActualUrl(type);
+            console.log(url)
+            try {
+                fetch(url)
+                    .then(res => res.json())
+                    .then(result => {
+                        console.log(result)
+                        const [CB, genre, count] = getActualCB(type);
+                        const actualData = CB ? CB(result, genre, count) : result;
+                        setData(actualData);
+                        setLoading(false);
+                    })
+                    .catch(e => {
+                        setError(true);
+                        setLoading(false);
+                        throw new Error(e.message);
+                    });
+            } catch (e) {
+                if (e instanceof Error) console.log(e.message);
+                setError(true);
+                setLoading(false);
+            }
         }
-    }, []);
-
+    }, [movieGenre]);
     return [data, loading, error];
 }
 export default useMovie;

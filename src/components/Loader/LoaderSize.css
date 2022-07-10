@@ -1,14 +1,17 @@
 .loader-center {
+  margin-top: 120px;
   display: flex;
   justify-content: center;
 }
 
 .loader-right {
+  margin-top: 120px;
   display: flex;
   justify-content: right;
 }
 
 .loader-left {
+  margin-top: 120px;
   display: flex;
   justify-content: left;
 }

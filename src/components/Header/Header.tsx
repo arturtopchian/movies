@@ -4,10 +4,8 @@ import HeaderItem from "./HeaderItem";
 import SearchPanel from "./SearchPanel";
 import {v4 as uid} from 'uuid';
 import SearchForm from "./SearchForm";
-import {useState} from "react";
 
 const Header = () => {
-    const [showSearch, setShowSearch] = useState(false);
     return (
         <header className="header">
             <div className="header__wrap">
@@ -21,7 +19,7 @@ const Header = () => {
                                         headerItemsData.map(({title}) => <HeaderItem title={title} key={uid()}/>)
                                     }
                                 </ul>
-                                <SearchPanel setShowSearch={setShowSearch}/>
+                                <SearchPanel/>
                             </div>
                         </div>
                     </div>

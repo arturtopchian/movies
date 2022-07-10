@@ -10,7 +10,7 @@ const SearchForm = () => {
     });
 
     return (
-        <form action="src/components/Header/Header#" className={isActiveFrom}>
+        <form className={isActiveFrom}>
             <div className="container">
                 <div className="row">
                     <div className="col-12">
@@ -25,6 +25,6 @@ const SearchForm = () => {
                 </div>
             </div>
         </form>
-    );
+    )
 }
 export default SearchForm;
