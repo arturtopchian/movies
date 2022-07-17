@@ -9,6 +9,7 @@ const IMG = "https://image.tmdb.org/t/p/original";
 const getQuery = (keys: string | string[] | undefined) => typeof keys === 'object' ? keys.join('&') : keys;
 
 const togglePages = () => {
+
 }
 
 
@@ -26,7 +27,7 @@ export enum Search {
 }
 
 export enum MovieTypes {
-    SEARCH = 'search',
+    SEARCH_BY_ID = 'searchById',
     MOVIE = 'movie',
     TV = 'tv',
     NEW_RELEASE = 'trending',
@@ -59,6 +60,8 @@ function getActualUrl(type: MovieTypes) {
             return `${BASE}${MovieTypes.MOVIE}/${Search.POPULAR}${APIKEY}${LANGUAGE}`;
         case MovieTypes.NEW_RELEASE:
             return `${BASE}${type}/all/day${APIKEY}`;
+        case MovieTypes.MOVIE_UPCOMING:
+            return `${BASE}${MovieTypes.MOVIE}/upcoming${APIKEY}${LANGUAGE}`;
         // case MovieTypes.MOVIE:
         // case MovieTypes.TV:
         //     return `${BASE}${type}/${id}${APIKEY}${LANGUAGE}`;
@@ -94,7 +97,7 @@ const getActualGenres = (genres: number[], genreList: any[]) => {
     return genres.map(id => genreList.filter(item => item.id === id).map(item => item.name)[0]);
 }
 
-const getValidPopularsData = (data: any, genre: [], count = 20) => {
+const getValidData = (data: any, genre: [], count = 20) => {
     data.results.length = count;
     return data.results.map((item: any) => {
         return {
@@ -112,7 +115,7 @@ const getValidPopularsData = (data: any, genre: [], count = 20) => {
     });
 }
 type returned = [data: [], loading: boolean, error: boolean];
-const useMovie = (type: MovieTypes): returned => {
+const useMovie = (type: MovieTypes, id?: number): returned => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [empty, setEmpty] = useState(false);
@@ -121,9 +124,11 @@ const useMovie = (type: MovieTypes): returned => {
     const getActualCB = (type: MovieTypes): any => {
         switch (type) {
             case MovieTypes.MOVIE_POPULAR:
-                return [getValidPopularsData, movieGenre];
+                return [getValidData, movieGenre];
             case MovieTypes.NEW_RELEASE:
-                return [getValidPopularsData, movieGenre, 6];
+                return [getValidData, movieGenre, 6];
+            case MovieTypes.MOVIE_UPCOMING:
+                return [getValidData, movieGenre, 6]
             default:
                 return null;
         }
